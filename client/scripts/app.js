@@ -9,6 +9,8 @@ var app = {
   
   username: window.location.search.slice(10),
 
+  displayedRooms: {},
+
   send: function(message) {
     $.ajax({
       url: app.server,
@@ -42,15 +44,15 @@ var app = {
             data.results.splice(i, 1);
           }
         }
-        var rooms = {};
+        //var rooms = {};
         data.results.forEach(function(message){
           if(message.roomname === roomname){
             app.renderMessage(message);
           }
           if(message.roomname) {
-            if(!rooms[message.roomname]) {
+            if(!app.displayedRooms[message.roomname]) {
               app.renderRoom(message.roomname);
-              rooms[message.roomname] = true;
+              app.displayedRooms[message.roomname] = true;
             }
           }
         })
@@ -67,23 +69,31 @@ var app = {
     if(!message.roomname) {
       var room = 'lobby';
     } else {
-      room = message.room;
+      room = message.roomname;
     }
     var message = message.text;
     //var room = message.room;
-    var newMessage = $('<div>' + '@' + userName + ':' + '<div>' + message + '<div>');
+    var newMessage = $('<div>' + '@' + userName +':' + '<div>' + message + '<div>');
     $('#chats').append(newMessage);
   },
 
   renderRoom: function(roomName) {
-    $('#roomSelect').append("<option>" + roomName + "</option>");
+    //$('#roomSelect').append("<option value="+ roomname +"data-show="+ "."+ roomname +">" + roomName + "</option>");
+    var roomOption = $("<option>" + roomName + "</option>");
+    var dataShowRoomName = '.' + roomName;
+    roomOption.attr({
+        "value" : roomName,
+        "data-show" : dataShowRoomName
+    })
+    $('#roomSelect').append(roomOption);
   },
 
   handleSubmit: function(message) {
+    var currentRoom = $('#roomSelect').val();
     var message = {
       username: app.username,
       text: message,
-      roomname: 'lobby'
+      roomname: currentRoom
     };
     app.send(message);
     //alert('Your Message Has Been Submitted!');
@@ -98,6 +108,13 @@ $(document).on('submit', 'form', function(event){
   app.handleSubmit(messageContent);
   alert('Your Message Has Been Submitted!');
           
+});
+
+$(document).on('change', '#roomSelect', function() {
+  var target = $('#roomSelect').val();
+  app.fetch(target);
+  //alert(target);
+  
 });
 
 
